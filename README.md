@@ -1,4 +1,4 @@
 # check-script
 
-I always forget what time I got to and left work, so this is a little script to help me.
+A tool to help me remember what time I got to and left work.
 It is also a chance to try out some haskell
