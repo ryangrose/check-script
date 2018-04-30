@@ -1,45 +1,55 @@
 import System.Environment (getArgs)
 import Data.Time.LocalTime
 import Data.List
+import Text.Show.Functions()
 
-interactWith f inputFile outputFile = do
-    input <- readFile inputFile
-    writeFile outputFile (f input)
 
-{- main = mainWith myFunction -}
-  {- where mainWith function = do -}
-          {- args <- getArgs -}
-          {- case args of -}
-            {- [input,output] -> interactWith function input output -}
-            {- _ -> putStrLn "error: exactly two arguments needed" -}
+type Day = String
+type Time = String
 
-        {- -- Replace id with actual function -}
-        {- myFunction = id -}
+data Date = Date Day Time
+    deriving (Show, Read, Eq, Ord)
 
-appendCurrentTime = do
-    currTime <- getZonedTime
-    let time = takeWhile (/= '.') $ show currTime
-    appendFile "out.txt" (time ++ "\n")
+zonedTimeToDate :: (Show t) =>  t -> Date
+zonedTimeToDate z = Date day time
+    where day = takeWhile (/= ' ') $ show z
+          time = takeWhile (/= '.') $ tail $ dropWhile (/= ' ') $ show z
 
-divideByDays [] = []
-divideByDays (x:y:xs)
-    | (day x) == (day y) = [x,y]: divideByDays xs
-    | otherwise          = [x]: divideByDays (y:xs)
+recordTime :: FilePath -> IO ()
+recordTime filename = do 
+    t <- getZonedTime
+    appendFile filename . show . zonedTimeToDate $ t
+    appendFile filename "\n"
 
-divideByDays (x:[]) = [[x]]
+parseDates :: [String] -> [Date]
+parseDates = map read 
 
-day d = takeWhile (/= ' ') d
-time d = drop 1 $ dropWhile (/= ' ') d
+getDates :: FilePath -> IO [Date]
+getDates inputFile = do
+    total <- readFile inputFile
+    return $ (parseDates . lines) total
 
-showDayTimes dayTimes =
-    d ++ ": " ++ (concat $ intersperse " " $ map time dayTimes)
-    where d = day $ head dayTimes
+groupByDays :: [Date] -> [[Date]]
+groupByDays = groupBy (\(Date day _) (Date otherday _) -> day == otherday)
 
-printDays = do
-    input <- readFile "out.txt"
-    let inputLines = lines input
-    let days = divideByDays inputLines
-    let prettyDays = map showDayTimes days
-    putStr $ unlines prettyDays
+showGroupedDays :: [Date] -> String
+showGroupedDays [] = ""
+showGroupedDays days = day ++ ":\n  " ++ concat times
+    where times = intersperse "\n  " $ map (\(Date _ t) -> t) days
+          day   = (\(Date d _) -> d) $ head days 
 
-main = printDays
+showDays :: [Date] -> [String]
+showDays = map showGroupedDays . groupByDays . sort
+
+printDays :: FilePath -> IO ()
+printDays filename =  do
+    dates <- getDates filename
+    putStrLn . unlines $ showDays dates
+
+main :: IO ()
+main = do
+    args <- getArgs
+    if null args then 
+        printDays "out.txt"
+    else
+        recordTime "out.txt" 
