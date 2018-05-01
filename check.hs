@@ -10,7 +10,7 @@ type Time = String
 data Date = Date Day Time
     deriving (Show, Read, Eq, Ord)
 
-zonedTimeToDate :: (Show t) =>  t -> Date
+zonedTimeToDate :: (Show t) => t -> Date
 zonedTimeToDate z = Date day time
     where day = takeWhile (/= ' ') $ show z
           time = takeWhile (/= '.') $ tail $ dropWhile (/= ' ') $ show z
