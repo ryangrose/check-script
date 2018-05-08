@@ -20,6 +20,7 @@ recordTime filename = do
     t <- getZonedTime
     appendFile filename . show . zonedTimeToDate $ t
     appendFile filename "\n"
+    putStrLn $ "Checked in at " ++ show (zonedTimeToDate t)
 
 parseDates :: [String] -> [Date]
 parseDates = map read 
@@ -50,6 +51,7 @@ main :: IO ()
 main = do
     args <- getArgs
     if null args then 
-        printDays "out.txt"
+        printDays "/home/ryan/git/check-script/out.txt"
+
     else
-        recordTime "out.txt" 
+        recordTime "/home/ryan/git/check-script/out.txt" 
